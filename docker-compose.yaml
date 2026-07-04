@@ -6,14 +6,15 @@
 # with appropriate permissions (readable only by the owner).
 # Then uncomment the 'secrets' section below.
 
-# secrets:
-#   db_password:
-#     file: ./secrets/db_password
-#   db_master_password:
-#     file: ./secrets/db_master_password
-#   app_key:
-#     file: ./secrets/app_key
-
+secrets:
+  db_password:
+    file: ./secrets/db_password
+  db_master_password:
+    file: ./secrets/db_master_password
+  app_key:
+    file: ./secrets/app_key
+  ai_vision_api_key:
+    file: ./secrets/vision_face_api_key
 ##########################################################################################
 # Common settings for Lychee services
 ##########################################################################################
@@ -58,11 +59,11 @@ x-base-lychee-setup:
   deploy:
     resources:
       limits:
-        cpus: '2'
-        memory: 2G
+        cpus: '4'
+        memory: 8G
       reservations:
-        cpus: '0.5'
-        memory: 512M
+        cpus: '2'
+        memory: 4G
 
   # To configure Lychee, you can do it via:
   # - environment variables (see the environment section below)
@@ -73,9 +74,9 @@ x-base-lychee-setup:
 
   # If you use docker secrets, uncomment the following lines and
   # create the secrets files as described at the top of this file.
-  # secrets:
-  #   - db_password
-  #   - app_key
+  secrets:
+    - db_password
+    - app_key
   volumes:
     # Mount local directories for persistent storage
     # Uploads : where your photos are going to be stored
@@ -99,8 +100,8 @@ x-common-env:
   #
   # You can also set it to 33 (www-data) if your files are owned by www-data.
   &common-env
-  PUID: "${PUID:-1000}"
-  PGID: "${PGID:-1000}"
+  PUID: "${PUID:-1002}"
+  PGID: "${PGID:-1002}"
 
   # Or you can activate the following to run as root inside the container. (not recommended)
   # RUN_AS_ROOT: "yes"
@@ -109,8 +110,8 @@ x-common-env:
   # You can either set it here directly (not recommended for security reasons)
   # Or load it from .env file
   # or use Docker secrets as shown above.
-  APP_KEY: "${APP_KEY:-}"
-  # APP_KEY_FILE: "/run/secrets/app_key"
+  # APP_KEY: "${APP_KEY:-}"
+  APP_KEY_FILE: "/run/secrets/app_key"
 
   # Application
   APP_NAME: "${APP_NAME:-Lychee}"
@@ -180,10 +181,10 @@ x-common-env:
 
   # Use secrets for sensitive data - see Docker secrets or vault integration
   # DB_PASSWORD should come from .env file only
-  DB_PASSWORD: "${DB_PASSWORD:-password}"
+  # DB_PASSWORD: "${DB_PASSWORD:-password}"
   #
   # Or you can uncomment the following line to use DB_PASSWORD_FILE from secrets
-  # DB_PASSWORD_FILE: "/run/secrets/db_password"
+  DB_PASSWORD_FILE: "/run/secrets/db_password"
 
   ###################################################################
   # Keygen License Management                                       #
@@ -234,10 +235,10 @@ x-common-env:
   QUEUE_CONNECTION: "${QUEUE_CONNECTION:-database}"
 
   # Logging Stuff.
-  # LOG_CHANNEL: "${LOG_CHANNEL:-stack}"
-  # LOG_STACK: "${LOG_STACK:-single}"
+  LOG_CHANNEL: "${LOG_CHANNEL:-stack}"
+  LOG_STACK: "${LOG_STACK:-single}"
   # LOG_DEPRECATIONS_CHANNEL: "${LOG_DEPRECATIONS_CHANNEL:-null}"
-  # LOG_LEVEL: "${LOG_LEVEL:-debug}"
+  LOG_LEVEL: "${LOG_LEVEL:-debug}"
   # LOG_STDOUT: "${LOG_STDOUT:-true}"
 
   # SECURITY_HEADER_HSTS_ENABLE:false
@@ -525,16 +526,16 @@ services:
     env_file:
       - path: ./.env
         required: false
-    # secrets:
-    #     - db_master_password
-    #     - db_password
+    secrets:
+        - db_master_password
+        - db_password
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-rootpassword}
-      # - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_master_password
+      # - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-rootpassword}
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_master_password
       - MYSQL_DATABASE=${DB_DATABASE:-lychee}
       - MYSQL_USER=${DB_USERNAME:-lychee}
-      - MYSQL_PASSWORD=${DB_PASSWORD:-password}
-      # - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+      # - MYSQL_PASSWORD=${DB_PASSWORD:-password}
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
     expose:
       - 3306
     # Removed host port binding - only accessible within Docker network
@@ -568,7 +569,7 @@ services:
       # Lychee instance base URL (no trailing slash)
       VISION_FACE_LYCHEE_API_URL: "http://lychee_api:8000"
       # Shared API key — must match AI_VISION_FACE_API_KEY in Lychee's .env
-      VISION_FACE_API_KEY: "${AI_VISION_API_KEY:-changeme}"
+      VISION_FACE_API_KEY_FILE: "/run/secrets/vision_face_api_key"
       # Set to false for development environments with self-signed certificates
       VISION_FACE_VERIFY_SSL: "${AI_VISION_VERIFY_SSL:-true}"
       # Skip the Lychee connectivity check at startup (useful for local dev)
