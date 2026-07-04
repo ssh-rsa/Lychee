@@ -13,8 +13,7 @@ secrets:
     file: ./secrets/db_master_password
   app_key:
     file: ./secrets/app_key
-  ai_vision_api_key:
-    file: ./secrets/vision_face_api_key
+
 ##########################################################################################
 # Common settings for Lychee services
 ##########################################################################################
@@ -569,7 +568,7 @@ services:
       # Lychee instance base URL (no trailing slash)
       VISION_FACE_LYCHEE_API_URL: "http://lychee_api:8000"
       # Shared API key — must match AI_VISION_FACE_API_KEY in Lychee's .env
-      VISION_FACE_API_KEY_FILE: "/run/secrets/vision_face_api_key"
+      VISION_FACE_API_KEY: "${AI_VISION_API_KEY:-changeme}"
       # Set to false for development environments with self-signed certificates
       VISION_FACE_VERIFY_SSL: "${AI_VISION_VERIFY_SSL:-true}"
       # Skip the Lychee connectivity check at startup (useful for local dev)
